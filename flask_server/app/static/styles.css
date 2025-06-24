@@ -1,0 +1,42 @@
+body {
+    font-family: sans-serif;
+    padding: 2rem;
+    color : white;
+    background-color : #303030;
+}
+
+h1 {
+    color: #e9f0ea;
+}
+
+table {
+    width: 100%;
+    border-collapse : collapse;
+    margin-top: 1rem;
+}
+
+.asset-table th, .asset-table td {
+    border: 1px solid #444;
+    padding: 8px 12px;
+    color: white;
+}
+
+.asset-table tr:nth-child(even) {
+    background-color: #2a2a2a;
+}
+
+.asset-table tr:nth-child(odd) {
+    background-color: #1f1f1f;
+}
+
+th, td {
+    border : 1px solid, #ccc;
+    padding : 0.5rem;
+    text.align: left;
+    color: black;
+}
+
+th {
+    background-color: #eee;
+    color : black;
+}

@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Config
+config/config.py
+*.json
+
+# IDEs
+.vscode/
+.idea/
+
+# Maya temp
+*.ma~
+*.mb~
+*.swp
+
+# Unreal/Maya generated
+Saved/
+Intermediate/
+*.uasset
+*.umap
+*.log
+*.fbx
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# configs reales
+maya_tools/config/config.py
+unreal_tools/config/config.py
+flask_server/config.json
