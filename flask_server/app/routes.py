@@ -38,8 +38,9 @@ def sync_asset():
 
     asset_name = data["asset_name"]
     file_path = data["file_path"]
-    log_dir = get_log_dir()
+    asset_material = data["asset_material", "default"]
 
+    log_dir = get_log_dir()
     existing_file = None
 
     for file in os.listdir(log_dir):
@@ -56,6 +57,7 @@ def sync_asset():
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     data["timestamp"] = timestamp
+    data["asset_material"] = asset_material
 
     if existing_file:
         filepath = existing_file
