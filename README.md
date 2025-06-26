@@ -9,7 +9,7 @@
 - **Cross-software Asset Sync** (Maya → Flask → Unreal Engine)
 - **Smart Material Instance Creation** based on asset type (`unique`, `trim`, `tile`)
 - **Automatic Metadata Logging** via `.json` over HTTP POST
-- 🖼**Custom UI in Maya and Unreal** using PySide2, embedded directly into each host
+- **Custom UI in Maya and Unreal** using PySide2, embedded directly into each host
 - **Clean Folder Structure** and reusable config system
 - **Material Reuse Logic** avoids duplicate material instances
 
