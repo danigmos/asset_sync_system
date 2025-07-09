@@ -24,6 +24,13 @@ def index():
         with open(os.path.join(log_dir, file), "r") as f:
             try:
                 data = json.load(f)
+                full_path = data.get("file_path", "")
+
+                if "_SourceAssets" in full_path:
+                    short_path = full_path.split("_SourceAssets", 1)[-1]
+                    data["file_path"] = "_SourceAssets" + short_path
+                else:
+                    data["file_path"] = os.path.basename(full_path)
                 assets.append(data)
             except Exception:
                 continue
@@ -38,7 +45,8 @@ def sync_asset():
 
     asset_name = data["asset_name"]
     file_path = data["file_path"]
-    asset_material = data["asset_material", "default"]
+    # asset_material = data["asset_material", "default"]
+    asset_material = data.get("asset_material", "default")
 
     log_dir = get_log_dir()
     existing_file = None

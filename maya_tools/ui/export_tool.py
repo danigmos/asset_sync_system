@@ -17,7 +17,7 @@ def maya_main_window():
 class ExportToolUI(QtWidgets.QDialog):
     def __init__(self, parent=maya_main_window()):
         super(ExportToolUI, self).__init__(parent)
-        self.setWindowTitle("Asset Export Tool")
+        self.setWindowTitle("Asset Sync | Maya")
         self.setMinimumWidth(500)
 
         self.asset_name = ""
@@ -44,6 +44,8 @@ class ExportToolUI(QtWidgets.QDialog):
         self.export_button = QtWidgets.QPushButton("Export Selected")
         self.cancel_button = QtWidgets.QPushButton("Cancel")
 
+        self.collision_label = QtWidgets.QLabel("No collisions detected")
+
     def create_layouts(self):
 
         file_path_layout = QtWidgets.QHBoxLayout()
@@ -54,6 +56,7 @@ class ExportToolUI(QtWidgets.QDialog):
         form_layout.addRow("Export Path", file_path_layout)
         form_layout.addRow("Asset:", self.asset_name_label)
         form_layout.addRow("Material:", self.material_label)
+        form_layout.addRow("Collisions:", self.collision_label)
 
         button_layout = QtWidgets.QHBoxLayout()
         button_layout.addStretch()
@@ -76,6 +79,16 @@ class ExportToolUI(QtWidgets.QDialog):
 
 
     def export_selected(self):
+        selection = cmds.ls(selection=True, long= True)
+        if not selection:
+            cmds.warning("No objects selected")
+            return
+
+        export_path = self.filepath.text()
+        if not export_path or not os.path.exists(export_path):
+            cmds.warning("Please choose a valid path")
+            return
+
         asset_name = self.asset_name_label.text().strip()
         material_name = self.material_label.text().strip()
 
@@ -83,14 +96,10 @@ class ExportToolUI(QtWidgets.QDialog):
             cmds.warning("No asset name, Please refresh selection")
             return
 
-        export_path = self.filepath.text()
-        if not export_path or not os.path.exists(export_path):
-            cmds.warning("Please choose a valid path")
-            return
-        full_path = os.path.join(export_path, f"{self.asset_name}.fbx").replace("\\", "/")
+        full_path = os.path.join(export_path, f"{asset_name}.fbx").replace("\\", "/")
 
         try:
-            cmds.select(self.asset_name, r=True)
+            cmds.select(selection, r=True)
             cmds.file(full_path, force=True, options="v=0", type="FBX export", pr=True, es=True)
         except Exception as e:
             cmds.warning(f"Export failed: {e}")
@@ -129,12 +138,18 @@ class ExportToolUI(QtWidgets.QDialog):
             self.material_label.setText(self.material_name)
             return
 
-        obj = selection[0]
-        self.asset_name = obj
-        self.asset_name_label.setText(obj)
+        primary_asset = next((obj for obj in selection if not os.path.basename(obj).lower().startswith("ucx_")), selection[0])
+        self.asset_name = os.path.basename(primary_asset)
+        self.asset_name_label.setText(self.asset_name)
 
-        material_name = self.get_material_name_from_object(obj)
+        material_name = self.get_material_name_from_object(primary_asset)
         self.material_label.setText(material_name if material_name else "default")
+
+        collisions = [os.path.basename(obj) for obj in selection if os.path.basename(obj).lower().startswith("ucx_")]
+        if collisions:
+            self.collision_label.setText(f"{len(collisions)} ({', '.join(collisions)})")
+        else:
+            self.collision_label.setText("No collisions detected")
 
     def closeEvent(self, event):
         try:

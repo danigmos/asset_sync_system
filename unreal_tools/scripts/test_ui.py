@@ -39,7 +39,7 @@ def openWindow():
     SyncUI.window = SyncUI()
     SyncUI.window.show()
     SyncUI.window.setObjectName('toolWindow')  # update this with something unique to your tool
-    SyncUI.window.setWindowTitle('Sample Tool')
+    SyncUI.window.setWindowTitle('Asset Sync | Unreal')
     unreal.parent_external_window_to_slate(SyncUI.window.winId())
 
 openWindow()

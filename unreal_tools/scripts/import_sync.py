@@ -31,7 +31,10 @@ def import_fbx(asset_data, master_math_path, material_type):
     unreal.log(f"[SYNC] IMPORTED : {asset_name}")
 
     unreal.log(f"[DEBUG] Calling create_material_instance with: {asset_name}, {master_math_path}, {material_type}")
-    create_material_instance(asset_name, master_math_path, material_type)
+    if master_math_path:
+        create_material_instance(asset_name, master_math_path, material_type)
+    else:
+        unreal.log(f"f[SYNC] Imported mesh only (no material) {asset_name}")
 
 
 def create_material_instance(asset_name, master_mat_path, material_type):
@@ -40,13 +43,11 @@ def create_material_instance(asset_name, master_mat_path, material_type):
     else:
         instance_name = f"MI_{asset_name}"
 
-        # Asegurar que no estamos duplicando MI_
     if instance_name.startswith("MI_MI_"):
         instance_name = instance_name.replace("MI_MI_", "MI_")
 
     instance_path = f"/Game/Materials/M_Instances/{instance_name}"
 
-    # Validar que el path es válido
     if not instance_path.startswith("/Game/") or instance_path.strip() == "/":
         unreal.log_warning(f"[SYNC] Invalid instance path: '{instance_path}' for {asset_name}")
         return
@@ -55,7 +56,6 @@ def create_material_instance(asset_name, master_mat_path, material_type):
         unreal.log(f"[SYNC] Material Instance already exists: {instance_path}")
         return
 
-    # Asegurarse que el master path tiene nombre completo para load_asset
     if "." not in master_mat_path:
         base_name = os.path.basename(master_mat_path)
         master_mat_path = f"{master_mat_path}.{base_name}"
@@ -65,7 +65,6 @@ def create_material_instance(asset_name, master_mat_path, material_type):
         unreal.log_warning(f"[SYNC] Master Material not found: {master_mat_path}")
         return
 
-    # Crear la instancia
     factory = unreal.MaterialInstanceConstantFactoryNew()
     asset_tools = unreal.AssetToolsHelpers.get_asset_tools()
 
@@ -81,7 +80,6 @@ def create_material_instance(asset_name, master_mat_path, material_type):
                 unreal.log_warning(f"[SYNC] Could not find StaticMesh to assign material: {static_mesh_path}")
                 return
 
-            # Asignar el MI al primer slot
             try:
                 static_mesh.set_material(0, mi)
                 unreal.EditorAssetLibrary.save_asset(static_mesh_path)

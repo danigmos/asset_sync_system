@@ -18,6 +18,7 @@ class SyncUI(QtWidgets.QWidget):
         self.table = QtWidgets.QTableWidget(len(self.assets), 3)
         self.table.setHorizontalHeaderLabels(["Asset", "Material", "Master Material"])
         self.import_button = QtWidgets.QPushButton("Import Assets")
+        self.refresh_button = QtWidgets.QPushButton("Refresh")
         self.create_ui()
 
     def create_ui(self):
@@ -67,6 +68,24 @@ class SyncUI(QtWidgets.QWidget):
         self.table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.table.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
 
+        self.populate_table()
+
+        self.import_button.clicked.connect(self.import_assets)
+        self.refresh_button.clicked.connect(self.refresh_table)
+
+        layout = QtWidgets.QVBoxLayout(self)
+        layout.addWidget(self.table)
+
+        button_layout = QtWidgets.QHBoxLayout()
+        button_layout.addWidget(self.refresh_button)
+        button_layout.addWidget(self.import_button)
+        layout.addLayout(button_layout)
+
+    def populate_table(self):
+        self.widgets.clear()
+        self.table.clearContents()
+        self.table.setRowCount(len(self.assets))
+
         master_mats = self.find_master_material()
         name_map = {}
         combo_path_map = {}
@@ -92,8 +111,9 @@ class SyncUI(QtWidgets.QWidget):
             self.table.setItem(row, 1, QtWidgets.QTableWidgetItem(material_asset))
 
             combo = QtWidgets.QComboBox()
+            combo.addItem("None")
             combo.addItems(combo_path_map.keys())
-            combo.path_map = combo_path_map
+            combo.path_map = {"None": None, **combo_path_map}
 
             instance_name = f"MI_{material_asset}" if any(
                 tag in material_asset.lower() for tag in ["trim", "tile"]) else f"MI_{asset_name}"
@@ -109,13 +129,6 @@ class SyncUI(QtWidgets.QWidget):
 
             self.table.setCellWidget(row, 2, combo)
             self.widgets[asset_name] = combo
-
-        self.import_button.clicked.connect(self.import_assets)
-
-        layout = QtWidgets.QVBoxLayout(self)
-        layout.addWidget(self.table)
-        layout.addWidget(self.import_button)
-
 
     def find_master_material(self):
         all_assets = unreal.EditorAssetLibrary.list_assets("/Game/Materials/M_Master", recursive=True)
@@ -133,17 +146,14 @@ class SyncUI(QtWidgets.QWidget):
                 continue
 
             selected_text = combo.currentText()
-            if selected_text == "Instance Already Exists":
-                continue
-
             master_path = combo.path_map.get(selected_text, None)
-            if not master_path:
-                unreal.log_warning(f"[SYNC] No master material path found for {selected_text}")
-                continue
-
-            unreal.log(f"[DEBUG] Selected Master Material: {selected_text} → {master_path}")
+            unreal.log(f"[DEBUG] Importing fbx for asset {name}")
             import_fbx(asset, master_path, mat_type)
 
+    def refresh_table(self):
+        self.assets = get_asset_logs()
+        self.populate_table()
+        unreal.log(f"[SYNC] Table refresh")
 
 
 
@@ -161,7 +171,7 @@ def open_window():
     SyncUI.window = SyncUI()
     SyncUI.window.show()
     SyncUI.window.setObjectName('toolWindow')  # update this with something unique to your tool
-    SyncUI.window.setWindowTitle('Sample Tool')
+    SyncUI.window.setWindowTitle('Asset Sync | Unreal')
     unreal.parent_external_window_to_slate(SyncUI.window.winId())
 
 

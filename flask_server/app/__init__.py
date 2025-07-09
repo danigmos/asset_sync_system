@@ -10,6 +10,7 @@ def create_app():
                 config_data = json.load(f)
 
         app = Flask(__name__, template_folder="templates", static_folder="static")
+        app.jinja_env.cache = {}
         app.config.update(config_data)
 
         from .routes import main
