@@ -1,10 +1,10 @@
 import sys
 import os
 
-current_dir = os.path.dirname("H:/DizasterGames/TechArtTools/Pipe/asset_sync_system/unreal_tools")
-project_root = os.path.abspath(os.path.join(current_dir))  # apunta a unreal_tools
-if project_root not in sys.path:
-    sys.path.insert(0, project_root)
+current_dir = os.path.dirname(os.path.abspath(__file__))
+
+if current_dir not in sys.path:
+    sys.path.insert(0, current_dir)
 
 import importlib
 import ui.ui_import_tool
