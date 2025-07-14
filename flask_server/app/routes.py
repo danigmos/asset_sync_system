@@ -66,12 +66,10 @@ def sync_asset():
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     data["timestamp"] = timestamp
     data["asset_material"] = asset_material
+    data["imported"] = False
 
-    if existing_file:
-        filepath = existing_file
-    else:
-        filename = f"{asset_name}_{timestamp}.json"
-        filepath = os.path.join(log_dir, filename)
+    filename = f"{asset_name}_{timestamp}.json"
+    filepath = os.path.join(log_dir, filename)
 
     with open(filepath, "w") as f:
         json.dump(data, f, indent=4)

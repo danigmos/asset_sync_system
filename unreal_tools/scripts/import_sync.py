@@ -1,20 +1,26 @@
+import json
+
 import unreal
 import os
-from config.config import UNREAL_IMPORT_PATH
+from config.config import UNREAL_IMPORT_PATH, BASE_SOURCE
 from core.sync_client import get_asset_logs
+
 
 def import_fbx(asset_data, master_math_path, material_type):
     asset_name = asset_data.get("asset_name", "")
-    fbx_file = asset_data.get("file_path", "").replace("\\", "/")
+    source_path = asset_data.get("file_path", "").replace("\\", "/")
+    base_source = BASE_SOURCE
 
-    if not os.path.exists(fbx_file):
-        unreal.log_warning(f"[SYNC] fbx not found: {fbx_file}")
-        return
+    if source_path.startswith(base_source):
+        relative_path = source_path[len(base_source):]
+        folder_structure = os.path.dirname(relative_path)
+        destination_path = f"/Game/Meshes/{folder_structure.replace(os.sep, '/')}"
 
-    destination_path = UNREAL_IMPORT_PATH
+    else:
+        destination_path = UNREAL_IMPORT_PATH
 
     task = unreal.AssetImportTask()
-    task.filename = fbx_file
+    task.filename = source_path
     task.destination_path = destination_path
     task.automated = True
     task.save = True
@@ -32,12 +38,23 @@ def import_fbx(asset_data, master_math_path, material_type):
 
     unreal.log(f"[DEBUG] Calling create_material_instance with: {asset_name}, {master_math_path}, {material_type}")
     if master_math_path:
-        create_material_instance(asset_name, master_math_path, material_type)
+        create_material_instance(asset_name, master_math_path, material_type, destination_path)
     else:
         unreal.log(f"f[SYNC] Imported mesh only (no material) {asset_name}")
 
+    try:
+        with open(asset_data["json_path"], "r+") as f:
+            data = json.load(f)
+            data["imported"] = True
+            f.seek(0)
+            json.dump(data, f, indent=4)
+            f.truncate()
+        unreal.log(f"[SYNC] Marked as imported {os.path.basename(asset_data['json_path'])}")
+    except Exception as e:
+        unreal.log_warning(f"[SYNC] Could not set imported flag {e}")
 
-def create_material_instance(asset_name, master_mat_path, material_type):
+
+def create_material_instance(asset_name, master_mat_path, material_type, destination_path):
     if "trim" in material_type or "tile" in material_type:
         instance_name = f"MI_{material_type}"
     else:
@@ -73,7 +90,7 @@ def create_material_instance(asset_name, master_mat_path, material_type):
                                       factory)
         if mi:
             mi.set_editor_property("parent", master_material)
-            static_mesh_path = f"/Game/ImportAssets/{asset_name}.{asset_name}"
+            static_mesh_path = f"{destination_path}/{asset_name}.{asset_name}"
             static_mesh = unreal.load_asset(static_mesh_path)
 
             if not static_mesh:

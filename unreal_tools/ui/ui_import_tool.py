@@ -5,14 +5,11 @@ import unreal
 from core.sync_client import get_asset_logs
 from scripts.import_sync import import_fbx
 
-
 class SyncUI(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(SyncUI, self).__init__(parent)
-
         self.setWindowTitle("Asset Sync Importer")
         self.setMinimumWidth(700)
-
         self.assets = get_asset_logs()
         self.widgets = {}
         self.table = QtWidgets.QTableWidget(len(self.assets), 3)
@@ -125,13 +122,13 @@ class SyncUI(QtWidgets.QWidget):
 
             if unreal.EditorAssetLibrary.does_asset_exist(instance_path):
                 combo.setCurrentText("Instance Already Exists")
-                combo.setEnabled(False)
+                #combo.setEnabled(False)
 
             self.table.setCellWidget(row, 2, combo)
             self.widgets[asset_name] = combo
 
     def find_master_material(self):
-        all_assets = unreal.EditorAssetLibrary.list_assets("/Game/Materials/M_Master", recursive=True)
+        all_assets = unreal.EditorAssetLibrary.list_assets("/Game/Materials/M_Masters", recursive=True)
         return [path for path in all_assets if "MM_" in os.path.basename(path)]
 
 
